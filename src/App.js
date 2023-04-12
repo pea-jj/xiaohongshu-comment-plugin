@@ -1,70 +1,64 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { getBasicData } from './api';
+import {
+  Input,
+  Switch,
+  Form,
+  InputNumber,
+  Radio,
+} from 'antd';
 import './App.css';
 
-// const mock = 'https://www.xiaohongshu.com/explore/63dcc4550000000002001156';
-
 function App() {
-  const [currentTab, setCurrentTab] = useState({});
-  const [commentList, setCommentList] = useState([]);
-  // const [hasMore, setHasMore] = useState(false);
-  const [cursor, setCursor] = useState('');
 
-  const uniqueId = useMemo(() => {
-    const url = currentTab.url;
-    if (!url) return '';
-    const id = url.match(/.*explore\/(.*)/)[1];
-    return id;
-  }, [currentTab]);
-
-  useEffect(() => {
-    window.chrome.tabs?.getSelected(null, function (tab) {
-      console.log('tab', tab);
-      setCurrentTab(tab);
-    });
-  }, []);
-
-  useEffect(() => {
-    uniqueId && fetchCommentData(uniqueId);
-  }, [uniqueId]);
-
-  const fetchCommentData = (uniqueId, cursor = '') => {
-    getBasicData({ uniqueId, cursor }, window.stealRequestHeaderInstance.getHeaders()).then((res) => {
-      const result = res?.data?.data;
-      const { comments, has_more: hasMore, cursor: c } = result || {};
-      setCursor(hasMore ? c : '');
-      setCommentList([...commentList, ...comments]);
-    }).catch(e => {
-      console.log(e);
-    })
+  const onFormLayoutChange = (values, allFields) => {
+    const bg = window.chrome.extension.getBackgroundPage();
+    bg.setGlobalConfig(allFields); // 访问bg的函数
   }
-
-  const reply = () => {
-
-  }
-
-  if (!window.chrome?.tabs) return null;
 
   return (
     <div className="App">
-      <div>
-        {uniqueId}
-      </div>
-      <div className='comments-wrapper'>
-        {commentList.map(v => {
-          const { id, content } = v;
-          return (
-            <div key={id}>
-              <div>
-                {content}
-              </div>
-              <div onClick={() => reply(id)}>
-                回复
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <h1>工具配置</h1>
+      <Form
+        labelCol={{
+          span: 6,
+        }}
+        wrapperCol={{
+          span: 18,
+        }}
+        layout="horizontal"
+        initialValues={{
+          style: "默认",
+          tokenNumLimit: 30,
+          commentNumLimit: 2,
+        }}
+        onValuesChange={onFormLayoutChange}
+        size='small'
+        style={{
+          maxWidth: 600,
+        }}
+      >
+        <Form.Item label="秘钥" name="key">
+          <Input />
+        </Form.Item>
+        <Form.Item label="回复风格" name="style">
+          <Radio.Group>
+            <Radio value="默认">默认</Radio>
+            <Radio value="小女生">女生向</Radio>
+            <Radio value="油腻男">油腻男向</Radio>
+            <Radio value="行业老师">行业老师向</Radio>
+            <Radio value="幽默">幽默</Radio>
+          </Radio.Group>
+        </Form.Item>
+        <Form.Item label="回复字数上限" name="tokenNumLimit">
+          <InputNumber min={10} max={50} />
+        </Form.Item>
+        <Form.Item label="评论最少字数" name="commentNumLimit">
+          <InputNumber min={0} max={20} />
+        </Form.Item>
+        <Form.Item label="求关注" name="followSwitch" valuePropName="checked">
+          <Switch />
+        </Form.Item>
+      </Form>
     </div>
   );
 }

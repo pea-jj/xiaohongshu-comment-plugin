@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
 
-  "name": "ai-talk",
-  "description": "ai-talk",
+  "name": "番薯工具",
+  "description": "自动回复工具",
   "version": "1.0",
 
   "permissions": [
@@ -14,18 +14,27 @@
     "background"
   ],
   "icons": { 
-    "16": "icon.jpg",             
-    "48": "icon.jpg",            
-    "128": "icon.jpg" 
+    "16": "16.png",             
+    "48": "48.png",            
+    "128": "128.png" 
   },
   "background": {
     "scripts": ["static/js/background.js"]
   },
+  "content_scripts": [
+    {
+      "matches": ["https://www.xiaohongshu.com/explore*"],
+      "run_at": "document_start",
+      "js": ["static/js/contentscript.js"],
+      "css": ["static/css/contentscript.css"]
+    }
+  ],
+  "web_accessible_resources": ["static/js/injected.js"],
   "browser_action": {
     "default_icon": { 
-      "16": "icon.jpg",             
-      "48": "icon.jpg",            
-      "128": "icon.jpg" 
+      "16": "16.png",             
+      "48": "48.png",            
+      "128": "128.png" 
     },
     "default_popup": "index.html"
   }

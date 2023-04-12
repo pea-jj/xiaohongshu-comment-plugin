@@ -1,0 +1,12 @@
+.ai-tip-wrapper {
+  width: 600px;
+  height: 600px;
+  box-sizing: border-box;
+  padding: 0 20px;
+}
+
+.ai-tip-table {
+  margin-top: 10px;
+  height: 420px;
+  overflow: auto;
+}

@@ -200,9 +200,12 @@ module.exports = function (webpackEnv) {
     // These are the "entry points" to our application.
     // This means they will be the "root" imports that are included in JS bundle.
     // entry: [paths.appIndexJs, paths.appBackgroundJs],
+    // entry: paths.appIndexJs,
     entry: {
       main: paths.appIndexJs,
       background: paths.appBackgroundJs,
+      contentscript: paths.appContentScriptJs,
+      injected: paths.appInjectedJs,
     },
     output: {
       // The build folder.
@@ -213,7 +216,7 @@ module.exports = function (webpackEnv) {
       // In development, it does not produce real files.
       filename: isEnvProduction
         ? 'static/js/[name].js'
-        : isEnvDevelopment && 'static/js/bundle.js',
+        : isEnvDevelopment && 'static/js/[name].js',
       // There are also additional JS chunk files if you use code splitting.
       chunkFilename: isEnvProduction
         ? 'static/js/[name].[contenthash:8].chunk.js'
@@ -248,53 +251,53 @@ module.exports = function (webpackEnv) {
     infrastructureLogging: {
       level: 'none',
     },
-    optimization: {
-      minimize: isEnvProduction,
-      minimizer: [
-        // This is only used in production mode
-        new TerserPlugin({
-          terserOptions: {
-            parse: {
-              // We want terser to parse ecma 8 code. However, we don't want it
-              // to apply any minification steps that turns valid ecma 5 code
-              // into invalid ecma 5 code. This is why the 'compress' and 'output'
-              // sections only apply transformations that are ecma 5 safe
-              // https://github.com/facebook/create-react-app/pull/4234
-              ecma: 8,
-            },
-            compress: {
-              ecma: 5,
-              warnings: false,
-              // Disabled because of an issue with Uglify breaking seemingly valid code:
-              // https://github.com/facebook/create-react-app/issues/2376
-              // Pending further investigation:
-              // https://github.com/mishoo/UglifyJS2/issues/2011
-              comparisons: false,
-              // Disabled because of an issue with Terser breaking valid code:
-              // https://github.com/facebook/create-react-app/issues/5250
-              // Pending further investigation:
-              // https://github.com/terser-js/terser/issues/120
-              inline: 2,
-            },
-            mangle: {
-              safari10: true,
-            },
-            // Added for profiling in devtools
-            keep_classnames: isEnvProductionProfile,
-            keep_fnames: isEnvProductionProfile,
-            output: {
-              ecma: 5,
-              comments: false,
-              // Turned on because emoji and regex is not minified properly using default
-              // https://github.com/facebook/create-react-app/issues/2488
-              ascii_only: true,
-            },
-          },
-        }),
-        // This is only used in production mode
-        new CssMinimizerPlugin(),
-      ],
-    },
+    // optimization: {
+    //   minimize: isEnvProduction,
+    //   minimizer: [
+    //     // This is only used in production mode
+    //     new TerserPlugin({
+    //       terserOptions: {
+    //         parse: {
+    //           // We want terser to parse ecma 8 code. However, we don't want it
+    //           // to apply any minification steps that turns valid ecma 5 code
+    //           // into invalid ecma 5 code. This is why the 'compress' and 'output'
+    //           // sections only apply transformations that are ecma 5 safe
+    //           // https://github.com/facebook/create-react-app/pull/4234
+    //           ecma: 8,
+    //         },
+    //         compress: {
+    //           ecma: 5,
+    //           warnings: false,
+    //           // Disabled because of an issue with Uglify breaking seemingly valid code:
+    //           // https://github.com/facebook/create-react-app/issues/2376
+    //           // Pending further investigation:
+    //           // https://github.com/mishoo/UglifyJS2/issues/2011
+    //           comparisons: false,
+    //           // Disabled because of an issue with Terser breaking valid code:
+    //           // https://github.com/facebook/create-react-app/issues/5250
+    //           // Pending further investigation:
+    //           // https://github.com/terser-js/terser/issues/120
+    //           inline: 2,
+    //         },
+    //         mangle: {
+    //           safari10: true,
+    //         },
+    //         // Added for profiling in devtools
+    //         keep_classnames: isEnvProductionProfile,
+    //         keep_fnames: isEnvProductionProfile,
+    //         output: {
+    //           ecma: 5,
+    //           comments: false,
+    //           // Turned on because emoji and regex is not minified properly using default
+    //           // https://github.com/facebook/create-react-app/issues/2488
+    //           ascii_only: true,
+    //         },
+    //       },
+    //     }),
+    //     // This is only used in production mode
+    //     new CssMinimizerPlugin(),
+    //   ],
+    // },
     resolve: {
       // This allows you to set a fallback for where webpack should look for modules.
       // We placed these paths second because we want `node_modules` to "win"
@@ -629,8 +632,8 @@ module.exports = function (webpackEnv) {
         new MiniCssExtractPlugin({
           // Options similar to the same options in webpackOptions.output
           // both options are optional
-          filename: 'static/css/[name].[contenthash:8].css',
-          chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
+          filename: 'static/css/[name].css',
+          chunkFilename: 'static/css/[name].chunk.css',
         }),
       // Generate an asset manifest file with the following content:
       // - "files" key: Mapping of all asset filenames to their corresponding
