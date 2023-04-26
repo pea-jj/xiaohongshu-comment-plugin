@@ -5,6 +5,8 @@ import { getAiReplyList } from '../../api';
 import './index.css';
 
 const pageSize = 20;
+let index = 0;
+
 function AiTip() {
   const [me, setMe] = useState(''); // 当前用户id
   const [commentList, setCommentList] = useState([]); // 所有评论
@@ -40,9 +42,21 @@ function AiTip() {
     },
   ];
 
+  useEffect(() => {
+    if (window.__cache_comments) {
+      const { message } = window.__cache_comments;
+      const { comments, user_id } = message.data;
+      setMe(user_id);
+      setCommentList((_) => [..._, ...comments.map(v => {
+        v.kPage = index;
+        return v;
+      })]);
+      index++;
+    }
+  }, []);
+
   // 接收消息，抓取评论列表
   useEffect(() => {
-    let index = 0;
     window.addEventListener("message", function (e) {
       const result = e.data;
       const { type, message } = result;

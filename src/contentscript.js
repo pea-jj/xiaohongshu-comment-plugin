@@ -12,16 +12,33 @@ s.onload = function () {
 (document.head || document.documentElement).appendChild(s);
 
 document.addEventListener('DOMContentLoaded', function () {
-  addExtension();
+  console.log('加载插件')
+  
+  setTimeout(() => {
+    addExtension();
+  }, 1000);
 });
 
 window.addEventListener("pushState", function (e) {
+  console.log('pushstate')
   const id = window.location.pathname.match(/.*explore\/(.*)/)[1];
   id && window.location.reload();
 });
 
+let isFirstMsg = true;
+window.addEventListener("message", function (e) {
+  const result = e.data;
+  const { type, message } = result;
+  if (type !== 'inject_message_type') return;
+  if (isFirstMsg) {
+    window.__cache_comments = result;
+  }
+  isFirstMsg = false;
+}, false);
+
 var addExtension = () => {
   const id = window.location.pathname.match(/.*explore\/(.*)/)[1];
+  console.log('id', id);
   if (!id) {
     return;
   }
