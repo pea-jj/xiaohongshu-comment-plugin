@@ -48,7 +48,7 @@ var addExtension = () => {
   }
   const extension = document.createElement('div');
   extension.id = 'ai-extension-x';
-  const root = document.querySelector('.note-detail-mask')
+  const root = document.querySelector('.note-detail-mask') ||  document.querySelector('.outer-link-container')
   root.appendChild(extension);
 
   const rootR = ReactDOM.createRoot(document.getElementById('ai-extension-x'));
