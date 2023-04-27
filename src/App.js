@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import {
   Input,
   Switch,
@@ -6,6 +6,7 @@ import {
   InputNumber,
   Radio,
 } from 'antd';
+import { initialValues } from './constants/index';
 import './App.css';
 
 function App() {
@@ -13,6 +14,12 @@ function App() {
   const onFormLayoutChange = (values, allFields) => {
     const bg = window.chrome.extension.getBackgroundPage();
     bg.setGlobalConfig(allFields); // 访问bg的函数
+  }
+
+  const getInitValues = () => {
+    const bg = window.chrome.extension.getBackgroundPage();
+    const config = bg.getGlobalConfig();
+    return config;
   }
 
   return (
@@ -26,36 +33,32 @@ function App() {
           span: 18,
         }}
         layout="horizontal"
-        initialValues={{
-          style: "默认",
-          tokenNumLimit: 30,
-          commentNumLimit: 2,
-        }}
+        initialValues={getInitValues()}
         onValuesChange={onFormLayoutChange}
         size='small'
         style={{
           maxWidth: 600,
         }}
       >
-        <Form.Item label="秘钥" name="key">
+        {/* <Form.Item label="秘钥" name="key">
           <Input />
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item label="回复风格" name="style">
           <Radio.Group>
-            <Radio value="默认">默认</Radio>
-            <Radio value="小女生">女生向</Radio>
-            <Radio value="油腻男">油腻男向</Radio>
-            <Radio value="行业老师">行业老师向</Radio>
-            <Radio value="幽默">幽默</Radio>
+            <Radio value="0">默认</Radio>
+            <Radio value="1">可爱女生风</Radio>
+            <Radio value="2">油腻男风</Radio>
+            <Radio value="3">行业老师风</Radio>
+            <Radio value="4">幽默风</Radio>
           </Radio.Group>
         </Form.Item>
         <Form.Item label="回复字数上限" name="tokenNumLimit">
           <InputNumber min={10} max={50} />
         </Form.Item>
-        <Form.Item label="评论最少字数" name="commentNumLimit">
+        <Form.Item label="低于最少字数不评论" name="commentNumLimit">
           <InputNumber min={0} max={20} />
         </Form.Item>
-        <Form.Item label="求关注" name="followSwitch" valuePropName="checked">
+        <Form.Item label="求关注" name="followSwitch" valuePropName="checked" extra="会随机在回复中增加求关注的表达">
           <Switch />
         </Form.Item>
       </Form>

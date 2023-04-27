@@ -1,11 +1,20 @@
+import { initialValues } from "./constants";
 // 预留一个方法给popup调用
-const globalConfig = {};
+let globalConfig = initialValues;
 window.setGlobalConfig = (data) => {
   globalConfig = data;
 }
 window.getGlobalConfig = () => {
   return globalConfig;
 }
+
+window.chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.type === 'getGlobalConfig') {
+    sendResponse({
+      globalConfig: globalConfig
+    });
+  }
+});
 
 
 export class StealRequestHeader {

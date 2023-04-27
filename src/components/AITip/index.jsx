@@ -9,6 +9,7 @@ let index = 0;
 
 function AiTip() {
   const [me, setMe] = useState(''); // 当前用户id
+  const [globalConfig, setGlobalConfig] = useState({});
   const [commentList, setCommentList] = useState([]); // 所有评论
   const [filterCommentList, setFilterCommentList] = useState([]); // 过滤后、待回复评论
   const [current, setCurrent] = useState(1);
@@ -42,6 +43,7 @@ function AiTip() {
     },
   ];
 
+  // 拿缓存的数据（第一页）
   useEffect(() => {
     if (window.__cache_comments) {
       const { message } = window.__cache_comments;
@@ -55,7 +57,7 @@ function AiTip() {
     }
   }, []);
 
-  // 接收消息，抓取评论列表
+  // 接收injectjs消息，抓取评论列表
   useEffect(() => {
     window.addEventListener("message", function (e) {
       const result = e.data;
@@ -71,13 +73,36 @@ function AiTip() {
     }, false);
   }, []);
 
+  // 主要内容自动同步input
   useEffect(() => {
     setNoteMainContent(document.querySelector('.note-content>.desc')?.innerText || '');
   }, []);
 
+  // 获取全局公共配置
+  const getGlobalConfig = () => {
+    return new Promise((resolve) => {
+      window.chrome.runtime.sendMessage({
+        type: 'getGlobalConfig'
+      }, function(response) {
+        const globalConfig = response.globalConfig;
+        resolve(globalConfig)
+      });
+    })
+  }
+
+  useEffect(() => {
+    getGlobalConfig().then(config => {
+      setGlobalConfig(config);
+    })
+  }, []);
+
   // 过滤评论列表，表格中展示内容
   useEffect(() => {
+    if (!commentList?.length) return;
+    const { commentNumLimit } = globalConfig; 
+
     let temp = commentList.filter(v => !v.content.includes('@'));
+    temp = temp.filter(v => v.content.length > commentNumLimit);
     temp = temp.filter(v => {
       const { user_id } = v.user_info; // 当前评论用户
       if (me === user_id) return false;
@@ -85,10 +110,14 @@ function AiTip() {
     })
     temp.forEach((v, index) => v.index = index);
     setFilterCommentList(temp);
-  }, [commentList]);
+  }, [commentList, globalConfig]);
 
   // 获取智能回复
-  const autoReply = () => {
+  const autoReply = async () => {
+    const config = await getGlobalConfig();
+    console.log('globalConfig', config);
+    const { style, tokenNumLimit, followSwitch } = config;
+
     const startIndex = (current - 1) * pageSize;
     const lastIndex = current * pageSize;
     const currentPageData = filterCommentList.slice(startIndex, lastIndex);
@@ -97,8 +126,11 @@ function AiTip() {
     setLoading(true);
     getAiReplyList({
       noteTitle,
-      noteMainContent: noteMainContent,
-      commentList: list
+      noteMainContent,
+      comments: list?.map((v, index) => (index + 1) + ' ' + v.content + '\n' ),
+      style,
+      tokenNumLimit,
+      followSwitch,
     }).then(res => {
       setLoading(false);
       const replyStr = res.data?.data;
@@ -124,6 +156,7 @@ function AiTip() {
     })
   }
 
+  // 自动发送
   const autoSendReply = async () => {
     let i = 0;
     for (let index = 0; index < filterCommentList.length; index++) {
@@ -131,7 +164,7 @@ function AiTip() {
       if (reply && !hasReply) {
         console.log(`处理第${i}条`, id, content, reply, hasReply, new Date().getTime());
         const index = commentList.findIndex(t => t.id === id);
-        console.log('father', commentList, index)
+        // console.log('father', commentList, index)
         sendSingleItem(index, reply);
         filterCommentList[index].hasReply = true;
         i++;
