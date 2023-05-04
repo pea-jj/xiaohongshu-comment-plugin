@@ -5,11 +5,15 @@ import {
   Form,
   InputNumber,
   Radio,
+  notification,
+  Button,
+  Divider,
 } from 'antd';
-import { initialValues } from './constants/index';
 import './App.css';
 
 function App() {
+  const [api, contextHolder] = notification.useNotification();
+  const [form] = Form.useForm();
 
   const onFormLayoutChange = (values, allFields) => {
     const bg = window.chrome.extension.getBackgroundPage();
@@ -22,10 +26,29 @@ function App() {
     return config;
   }
 
+  const testSelfMessageContent = () => {
+    const selfMessageContent = form.getFieldValue('selfMessageContent');
+    if (!selfMessageContent) {
+      window.alert('请填写固定话术')
+      return;
+    };
+    const list = selfMessageContent.split(/[0-9]\. /);
+    if (list.length > 1) {
+      list.shift();
+    }
+    let randomIndex = Math.floor(Math.random() * list.length);
+    api.info({
+      message: '测试随机话术',
+      description: list[randomIndex],
+      placement: 'topRight',
+    });
+  }
+
   return (
     <div className="App">
-      <h1>工具配置</h1>
+      {contextHolder}
       <Form
+        form={form}
         labelCol={{
           span: 6,
         }}
@@ -37,13 +60,15 @@ function App() {
         onValuesChange={onFormLayoutChange}
         size='small'
         style={{
-          maxWidth: 600,
+          maxWidth: 560,
         }}
       >
-        {/* <Form.Item label="秘钥" name="key">
+        <h5>秘钥(免费试用秘钥请联系博主哦~)</h5>
+        <Form.Item label="秘钥" name="key">
           <Input />
-        </Form.Item> */}
-        <Form.Item label="回复风格" name="style">
+        </Form.Item>
+        <h5>评论回复配置</h5>
+        <Form.Item label="AI回复风格" name="style">
           <Radio.Group>
             <Radio value="0">默认</Radio>
             <Radio value="1">可爱女生风</Radio>
@@ -52,16 +77,26 @@ function App() {
             <Radio value="4">幽默风</Radio>
           </Radio.Group>
         </Form.Item>
-        <Form.Item label="回复字数上限" name="tokenNumLimit">
-          <InputNumber min={10} max={50} />
+        <Form.Item label="回复字数上限" name="tokenNumLimit" tooltip="回复字数上限">
+          <InputNumber min={3} max={30} />
         </Form.Item>
-        <Form.Item label="低于最少字数不评论" name="commentNumLimit">
+        <Form.Item label="评论过滤字数" name="commentNumLimit" tooltip="低于xx字数不评论">
           <InputNumber min={0} max={20} />
         </Form.Item>
-        <Form.Item label="求关注" name="followSwitch" valuePropName="checked" extra="会随机在回复中增加求关注的表达">
+        <Form.Item label="求关注" name="followSwitch" valuePropName="checked" tooltip="会随机在回复中增加求关注的表达">
           <Switch />
         </Form.Item>
+        <h5>私信配置</h5>
+        <Form.Item label="自动回复" name="selfMessageSwitch" valuePropName="checked" tooltip="是否开启私信自动回复">
+          <Switch />
+        </Form.Item>
+        <Form.Item label="固定话术" name="selfMessageContent" tooltip="多条话术随机展示，格式严格按照1. 2. 3. 索引来哦，注意有空格">
+          <Input.TextArea placeholder="1. 你好呀~加xxxxxx可以了解更多哦！ 2. 加群" allowClear autoSize />
+        </Form.Item>
+        <Button onClick={testSelfMessageContent} style={{ marginLeft: 140 }}>点我测试随机话术</Button>
       </Form>
+      <Divider dashed />
+      <div className='mini-tip'>改变配置后记得刷新页面哦~</div>
     </div>
   );
 }

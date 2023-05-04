@@ -1,4 +1,15 @@
 .App {
   /* text-align: center; */
   padding: 20px;
+  width: 600px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.mini-tip {
+  font-size: 12px;
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  color: gray;
 }

@@ -1,5 +1,14 @@
 (function (xhr) {
-  var whiteListUrl = 'edith.xiaohongshu.com/api/sns/web/v2/comment/page';
+  var whiteListUrlList = [{
+    url: '/api/sns/web/v2/comment/page',
+    messageType: 'COMMENT_LIST',
+  }, {
+    url: '/api/eros/pm/chat/chatbox/total_list',
+    messageType: 'CHAT_LIST',
+  }, {
+    url: '/api/eros/pm/chat/message/total_list?chat_user_id',
+    messageType: 'CHAT_BOX',
+  }];
   var XHR = XMLHttpRequest.prototype;
   var open = XHR.open;
   var send = XHR.send;
@@ -17,17 +26,18 @@
     this.addEventListener('load', function () {
 
       var myUrl = this._url ? this._url.toLowerCase() : this._url;
-      if (myUrl && myUrl.includes(whiteListUrl)) {
+      if (myUrl) {
         if (this.responseType != 'blob' && this.responseText) {
           try {
             var text = this.responseText;
             // 发送消息到content.js
-            window.postMessage({ type: "inject_message_type", message: JSON.parse(text) })
-            // console.log('注入脚本发送: ', JSON.parse(text));
+            const messageType = whiteListUrlList.find(v => {
+              return myUrl.includes(v.url)
+            })?.messageType;
+            messageType && window.postMessage({ type: messageType, message: JSON.parse(text), _url: myUrl })
           } catch (err) {
           }
         }
-
       }
     });
     return send.apply(this, arguments);

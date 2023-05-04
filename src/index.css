@@ -6,8 +6,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  width: 100%;
-  width: 500px;
+  /* width: 100%; */
+  width: 600px;
   /* min-height: 200px; */
   height: 100vh;
   background-color: #fff;
@@ -16,4 +16,8 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+h5 {
+  margin: 2px 0;
 }

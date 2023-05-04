@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, Input, Button, Card, Space, message } from 'antd';
 import { cloneDeep } from 'lodash';
 import { getAiReplyList } from '../../api';
+import useVerify from '../../hooks/verify';
 import './index.css';
 
 const pageSize = 20;
@@ -16,6 +17,7 @@ function AiTip() {
   const [loading, setLoading] = useState(false);
   const [noteMainContent, setNoteMainContent] = useState(''); // 笔记标题
   const [messageApi, contextHolder] = message.useMessage();
+  const { access } = useVerify();
 
   // 表格配置
   const columns = [
@@ -62,7 +64,7 @@ function AiTip() {
     window.addEventListener("message", function (e) {
       const result = e.data;
       const { type, message } = result;
-      if (type !== 'inject_message_type') return;
+      if (type !== 'COMMENT_LIST') return;
       const { comments, user_id } = message.data;
       setMe(user_id);
       setCommentList((_) => [..._, ...comments.map(v => {
@@ -213,6 +215,8 @@ function AiTip() {
     const { current } = pagination;
     setCurrent(current);
   }
+
+  if (!access) return null;
 
   return (
     <div className='ai-tip-wrapper'>
