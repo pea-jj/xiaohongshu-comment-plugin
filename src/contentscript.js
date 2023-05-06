@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (BIZ_TYPE === 'SELF_MESSAGE') {
     setTimeout(() => {
       addSelfMessageProcess();
-    }, 4000);
+    }, 2000);
   }
 });
 
@@ -83,6 +83,12 @@ const addSelfMessageProcess = () => {
   const extension = document.createElement('div');
   extension.id = 'ai-extension-x';
   const root = document.querySelector('.reply-container .brand-name')
+  if (!root) {
+    setTimeout(() => {
+      addSelfMessageProcess();
+    }, 1000);
+    return;
+  }
   root.appendChild(extension);
 
   const rootR = ReactDOM.createRoot(document.getElementById('ai-extension-x'));

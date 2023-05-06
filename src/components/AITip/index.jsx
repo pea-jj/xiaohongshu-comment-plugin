@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Input, Button, Card, Space, message } from 'antd';
+import { Table, Input, Button, Card, Space, message, ConfigProvider, Modal } from 'antd';
+// import { InfoCircleOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 import { getAiReplyList } from '../../api';
 import useVerify from '../../hooks/verify';
@@ -17,6 +18,7 @@ function AiTip() {
   const [loading, setLoading] = useState(false);
   const [noteMainContent, setNoteMainContent] = useState(''); // 笔记标题
   const [messageApi, contextHolder] = message.useMessage();
+  const [modal, contextModalHolder] = Modal.useModal();
   const { access } = useVerify();
 
   // 表格配置
@@ -85,7 +87,7 @@ function AiTip() {
     return new Promise((resolve) => {
       window.chrome.runtime.sendMessage({
         type: 'getGlobalConfig'
-      }, function(response) {
+      }, function (response) {
         const globalConfig = response.globalConfig;
         resolve(globalConfig)
       });
@@ -101,7 +103,7 @@ function AiTip() {
   // 过滤评论列表，表格中展示内容
   useEffect(() => {
     if (!commentList?.length) return;
-    const { commentNumLimit } = globalConfig; 
+    const { commentNumLimit } = globalConfig;
 
     let temp = commentList.filter(v => !v.content.includes('@'));
     temp = temp.filter(v => v.content.length > commentNumLimit);
@@ -129,7 +131,9 @@ function AiTip() {
     getAiReplyList({
       noteTitle,
       noteMainContent,
-      comments: list?.map((v, index) => (index + 1) + ' ' + v.content + '\n' ),
+      // comments: list?.map((v, index) => (index + 1) + ' ' + v.content + '\n'),
+      comments: JSON.stringify(list?.map(v => v.content)),
+      commentsLength: list.length,
       style,
       tokenNumLimit,
       followSwitch,
@@ -143,12 +147,16 @@ function AiTip() {
       const replyList = replyStr.split(/\d{0,2}\. /);
       replyList.shift();
       console.log('replylist', replyList)
-      if (replyList.length !== list.length) {
+      if (replyList.length < list.length) {
         // 抛异常
+        messageApi.open({
+          type: 'fail',
+          content: '网络出小差了，请重试',
+        });
         return;
       }
 
-      for (let i = startIndex, j = 0; i < startIndex + replyList.length; i++, j++) {
+      for (let i = startIndex, j = 0; i < startIndex + list.length; i++, j++) {
         filterCommentList[i].reply = replyList[j];
       }
       setFilterCommentList([...filterCommentList]);
@@ -160,14 +168,23 @@ function AiTip() {
 
   // 自动发送
   const autoSendReply = async () => {
+    const result = filterCommentList.filter(item => item.reply && !item.hasReply);
+    const instance = modal.success({
+      title: `共有${result.length}条回复待发送`,
+      content: `共有${result.length}条回复待发送，请等待... ...`,
+    });
+
     let i = 0;
     for (let index = 0; index < filterCommentList.length; index++) {
       const { id, content, reply, hasReply } = filterCommentList[index];
       if (reply && !hasReply) {
-        console.log(`处理第${i}条`, id, content, reply, hasReply, new Date().getTime());
-        const index = commentList.findIndex(t => t.id === id);
+        console.log(`处理第${i}条`, id, content, reply, hasReply, filterCommentList[index], new Date().getTime());
+        instance.update({
+          content: `正在处理第${i+1}条，请等待... ...`,
+        });
+        const domIndex = commentList.findIndex(t => t.id === id);
         // console.log('father', commentList, index)
-        sendSingleItem(index, reply);
+        sendSingleItem(domIndex, reply);
         filterCommentList[index].hasReply = true;
         i++;
         // 异步 防封
@@ -178,6 +195,7 @@ function AiTip() {
         })
       }
     }
+    instance.destroy();
     i && messageApi.open({
       type: 'success',
       content: `处理完成，共发送${i}条回复`,
@@ -196,9 +214,9 @@ function AiTip() {
     commentInputEl.value = content;
     commentInputEl.dispatchEvent(new CustomEvent('input'));
     commentInputEl.dispatchEvent(new CustomEvent('change'));
-     // 提交
-     const submitEl = document.querySelector('.comment-wrapper button.submit');
-     submitEl.click();
+    // 提交
+    const submitEl = document.querySelector('.comment-wrapper button.submit');
+    submitEl.click();
   }
 
   const replyInputChange = (id, e) => {
@@ -216,31 +234,47 @@ function AiTip() {
     setCurrent(current);
   }
 
-  if (!access) return null;
+  const customizeRenderEmpty = () => (
+    //这里面就是我们自己定义的空状态
+    <div style={{ textAlign: 'center' }}>
+        {/* <InfoCircleOutlined style={{ fontSize: 20 }} /> */}
+        <p>暂无评论数据，请注意你回复过的评论不会显示出来~</p>
+    </div>
+);
+
+  if (!access) return (
+    <div style={{
+      marginLeft: 30,
+      color: 'red',
+    }}>验证秘钥中</div>
+  );
 
   return (
     <div className='ai-tip-wrapper'>
       {contextHolder}
-      <Card size="small" title="笔记内容">
+      {contextModalHolder}
+      <Card size="small" title="笔记内容【ai是基于笔记内容去生成回复的，这里可以详细总结下你的笔记~】">
         <Input.TextArea value={noteMainContent} placeholder="描述写下笔记的主要内容" bordered={false} onChange={inputOnChange} />
       </Card>
-      <div></div>
       <Space wrap style={{ margin: '20px 0' }}>
-        <Button onClick={autoReply} type="primary" loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>
-        <Button onClick={autoSendReply} type="primary">自动发送评论</Button>
+        <Button onClick={autoReply} type="primary" disabled={!filterCommentList?.length} loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>
+        <Button onClick={autoSendReply} type="primary" disabled={!filterCommentList?.length}>自动发送评论</Button>
       </Space>
+      <ConfigProvider renderEmpty={customizeRenderEmpty}>
+        <Table
+          className='ai-tip-table'
+          columns={columns}
+          dataSource={filterCommentList}
+          size="small"
+          pagination={{
+            pageSize,
+            showSizeChanger: false,
+            position: ["topRight", "none"]
+          }}
+          onChange={tableChange}
+        />
+      </ConfigProvider>
 
-      <Table
-        className='ai-tip-table'
-        columns={columns}
-        dataSource={filterCommentList}
-        size="small"
-        pagination={{
-          pageSize,
-          showSizeChanger: false,
-          position: ["topRight", "none"]
-        }}
-        onChange={tableChange} />
     </div>
   );
 }

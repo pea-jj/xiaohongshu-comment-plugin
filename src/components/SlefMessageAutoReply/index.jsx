@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
+import {  Modal } from 'antd';
 import { sleepTime, getParameterByName } from '../../utils/index';
 import useVerify from '../../hooks/verify';
 import './index.css';
 
 function SlefMessageAutoReply() {
   const [globalConfig, setGlobalConfig] = useState({});
+  const [modal, contextModalHolder] = Modal.useModal();
   const getGlobalConfigRef = useRef({});
   const activeChatBoxRef = useRef({});
   const stopFigRef = useRef(false);
@@ -42,7 +44,6 @@ function SlefMessageAutoReply() {
 
   // 接收injectjs消息，查询新消息
   useEffect(() => {
-    console.log('xxx', access)
     const fn = function (e) {
       const result = e.data;
       const { type, message } = result;
@@ -52,7 +53,9 @@ function SlefMessageAutoReply() {
       chatbox_list.forEach((item, i) => item.kIndex = i);
       const list = chatbox_list.filter(item => item.last_store_id > item.view_store_id);
       console.log('开始批处理', list)
-      autoSendMsg(list)
+      if (list?.length) {
+        autoSendMsg(list);
+      }
     }
     window.addEventListener("message", fn, false);
     return () => {
@@ -77,7 +80,10 @@ function SlefMessageAutoReply() {
 
   // 自动回复私信
   const autoSendMsg = (list) => {
-    if (!list?.length) return;
+    const instance = modal.success({
+      title: `注意`,
+      content: `你收到${list.length}位用户新消息，正在处理，请稍等... ...`,
+    });
     stopFigRef.current = true;
     const pList = list.map((item) => {
       const { kIndex, user_id } = item;
@@ -118,13 +124,14 @@ function SlefMessageAutoReply() {
       .finally(() => {
         console.log('结束')
         stopFigRef.current = false;
+        instance.destroy();
       });
   }
-  if (!access) return null;
 
   return (
     <span className='self-message-tip'>
-      {(selfMessageSwitch && selfMessageContent) ? '已开启' : '未开启'}自动回复
+      {contextModalHolder}
+      { access ? ((selfMessageSwitch && selfMessageContent) ? '已开启' : '未开启') + '自动回复' : '验证秘钥中'}
     </span>
   );
 }

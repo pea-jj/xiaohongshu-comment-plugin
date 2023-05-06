@@ -1,6 +1,6 @@
 export const initialValues = {
-  style: '0',
-  tokenNumLimit: 30,
+  style: '1',
+  tokenNumLimit: 20,
   commentNumLimit: 2,
   followSwitch: false,
   selfMessageSwitch: true,
