@@ -16,6 +16,53 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
   }
 });
 
+window.chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  const { type, data } = request;
+  if (type === 'follow') {
+    window.chrome.windows.create(
+      {
+        url: 'https://www.xiaohongshu.com/user/profile/' + data[0],
+      },
+      async (followWindow) => {
+        console.log('window', followWindow);
+        const tab = followWindow.tabs[0];
+        let i = 0;
+        while (i < data.length) {
+          sendResponse(i);
+          const processFollow = () => new Promise((r) => {
+            window.chrome.tabs.executeScript(tab.id, { code: `
+              setTimeout(() => {
+                document.querySelector('.user-info .follow') && document.querySelector('.user-info .follow').click();
+                document.querySelector('.note-item .like-wrapper') && document.querySelector('.note-item .like-wrapper').click();
+              }, 2000 + Math.random() * 3000)
+              ` });
+            setTimeout(() => {
+              if (data[i + 1]) {
+                window.chrome.tabs.update(
+                  tab.id,
+                  {
+                    url: 'https://www.xiaohongshu.com/user/profile/' + data[i + 1]
+                  },
+                  () => {
+                    setTimeout(() => {
+                      r(i++);
+                    }, 1000);
+                  },
+                )
+              } else {
+                r(i++);
+              }
+            }, 6000 + Math.random() * 3000);
+          })
+          await processFollow();
+        }
+        window.chrome.windows.remove(
+          followWindow.id,
+        )
+      },
+    )
+  }
+});
 
 export class StealRequestHeader {
   constructor() {

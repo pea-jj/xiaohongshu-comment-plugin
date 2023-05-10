@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { verifyKey } from '../api/index';
 
-export default function useVerify() {
-  const [access, setAccess] = useState(false);
+export default function useVerify(nickName) {
+  const [access, setAccess] = useState([]);
 
   // 获取全局公共配置
   const getGlobalConfig = () => {
@@ -17,13 +17,14 @@ export default function useVerify() {
   }
 
   useEffect(() => {
-    getGlobalConfig().then(config => {
+    nickName && getGlobalConfig().then(config => {
       return verifyKey(config.key)
     }).then(res => {
-      setAccess(res?.data?.data)
-      return res?.data?.data;
-    })
-  }, []);
+      const { isTest, access, user } = res?.data?.data || {};
+      setAccess((isTest || user?.includes(nickName)) ? access : []);
+      return (isTest || user?.includes(nickName)) ? access : [];
+    });
+  }, [nickName]);
 
   return {
     access

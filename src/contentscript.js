@@ -32,23 +32,32 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-window.addEventListener("pushState", function (e) {
-  console.log('pushstate')
-  const id = window.location.pathname.match(/.*explore\/(.*)/)[1];
-  id && window.location.reload();
-});
-
-// 缓存第一页评论列表消息
 if (BIZ_TYPE === 'NOTE') {
+  window.addEventListener("pushState", function (e) {
+    console.log('pushstate')
+    const id = window.location.pathname.match(/.*explore\/(.*)/)?.[1];
+    id && window.location.reload();
+  });
+}
+
+// 缓存消息消息
+if (BIZ_TYPE === 'NOTE' || BIZ_TYPE === 'SELF_MESSAGE') {
   let isFirstMsg = true;
   window.addEventListener("message", function (e) {
     const result = e.data;
     const { type } = result;
-    if (type !== 'COMMENT_LIST') return;
-    if (isFirstMsg) {
-      window.__cache_comments = result;
+    // console.log('xxx', type, result.message)
+    if (type === 'COMMENT_LIST') {
+      // 缓存评论
+      if (isFirstMsg) {
+        window.__cache_comments = result;
+      }
+      isFirstMsg = false;
+    } else if (type === 'ME' && result?.message?.data?.nickname) {
+      window.__cache_nickname = result?.message?.data?.nickname;
+    } else if (type === 'PRO_ME' && result?.message?.data?.kolApply?.userName) {
+      window.__cache_nickname = result?.message?.data?.kolApply?.userName;
     }
-    isFirstMsg = false;
   }, false);
 }
 

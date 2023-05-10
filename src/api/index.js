@@ -13,7 +13,7 @@ export const getAiReplyList = (data) => {
 export const verifyKey = (key = '') => {
   return axios({
     method: 'post',
-    url: 'https://smooth.chat/chat/xiaohongshu-verify',
+    url: 'https://smooth.chat/chat/xiaohongshu-verify-v2',
     // withCredentials: true,
     timeout: 10000,
     data: {

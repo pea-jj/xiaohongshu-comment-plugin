@@ -4,6 +4,7 @@ import { Table, Input, Button, Card, Space, message, ConfigProvider, Modal } fro
 import { cloneDeep } from 'lodash';
 import { getAiReplyList } from '../../api';
 import useVerify from '../../hooks/verify';
+import FollowBtn from './Follow';
 import './index.css';
 
 const pageSize = 20;
@@ -11,6 +12,7 @@ let index = 0;
 
 function AiTip() {
   const [me, setMe] = useState(''); // 当前用户id
+  const [nickName, setNickName] = useState(window.__cache_nickname || ''); // 当前用户名
   const [globalConfig, setGlobalConfig] = useState({});
   const [commentList, setCommentList] = useState([]); // 所有评论
   const [filterCommentList, setFilterCommentList] = useState([]); // 过滤后、待回复评论
@@ -19,8 +21,10 @@ function AiTip() {
   const [noteMainContent, setNoteMainContent] = useState(''); // 笔记标题
   const [messageApi, contextHolder] = message.useMessage();
   const [modal, contextModalHolder] = Modal.useModal();
-  const { access } = useVerify();
-
+  const { access } = useVerify(nickName);
+  const currentAccess = access?.includes('COMMENT');
+  const currentFollowAccess = access?.includes('FOLLOW');
+  console.log('xxx', nickName)
   // 表格配置
   const columns = [
     {
@@ -77,6 +81,16 @@ function AiTip() {
     }, false);
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("message", function (e) {
+      const result = e.data;
+      const { type, message } = result;
+      if (type !== 'ME') return;
+      const { nickname } = message.data;
+      setNickName(nickname);
+    }, false);
+  }, []);
+
   // 主要内容自动同步input
   useEffect(() => {
     setNoteMainContent(document.querySelector('.note-content>.desc')?.innerText || '');
@@ -94,6 +108,7 @@ function AiTip() {
     })
   }
 
+  // 全局变量
   useEffect(() => {
     getGlobalConfig().then(config => {
       setGlobalConfig(config);
@@ -180,7 +195,7 @@ function AiTip() {
       if (reply && !hasReply) {
         console.log(`处理第${i}条`, id, content, reply, hasReply, filterCommentList[index], new Date().getTime());
         instance.update({
-          content: `正在处理第${i+1}条，请等待... ...`,
+          content: `正在处理第${i + 1}条，请等待... ...`,
         });
         const domIndex = commentList.findIndex(t => t.id === id);
         // console.log('father', commentList, index)
@@ -237,12 +252,12 @@ function AiTip() {
   const customizeRenderEmpty = () => (
     //这里面就是我们自己定义的空状态
     <div style={{ textAlign: 'center' }}>
-        {/* <InfoCircleOutlined style={{ fontSize: 20 }} /> */}
-        <p>暂无评论数据，请注意你回复过的评论不会显示出来~</p>
+      {/* <InfoCircleOutlined style={{ fontSize: 20 }} /> */}
+      <p>暂无评论数据，请注意你回复过的评论不会显示出来~</p>
     </div>
-);
+  );
 
-  if (!access) return (
+  if (!access?.length) return (
     <div style={{
       marginLeft: 30,
       color: 'red',
@@ -253,27 +268,33 @@ function AiTip() {
     <div className='ai-tip-wrapper'>
       {contextHolder}
       {contextModalHolder}
-      <Card size="small" title="笔记内容【ai是基于笔记内容去生成回复的，这里可以详细总结下你的笔记~】">
-        <Input.TextArea value={noteMainContent} placeholder="描述写下笔记的主要内容" bordered={false} onChange={inputOnChange} />
-      </Card>
-      <Space wrap style={{ margin: '20px 0' }}>
-        <Button onClick={autoReply} type="primary" disabled={!filterCommentList?.length} loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>
-        <Button onClick={autoSendReply} type="primary" disabled={!filterCommentList?.length}>自动发送评论</Button>
-      </Space>
-      <ConfigProvider renderEmpty={customizeRenderEmpty}>
-        <Table
-          className='ai-tip-table'
-          columns={columns}
-          dataSource={filterCommentList}
-          size="small"
-          pagination={{
-            pageSize,
-            showSizeChanger: false,
-            position: ["topRight", "none"]
-          }}
-          onChange={tableChange}
-        />
-      </ConfigProvider>
+      {currentFollowAccess && <FollowBtn />}
+      {currentAccess && (
+        <>
+          <Card size="small" title="笔记内容【ai是基于笔记内容去生成回复的，这里可以详细总结下你的笔记~】">
+            <Input.TextArea value={noteMainContent} placeholder="描述写下笔记的主要内容" bordered={false} onChange={inputOnChange} />
+          </Card>
+          <Space wrap style={{ margin: '20px 0' }}>
+            <Button onClick={autoReply} type="primary" disabled={!filterCommentList?.length} loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>
+            <Button onClick={autoSendReply} type="primary" disabled={!filterCommentList?.length}>自动发送评论</Button>
+          </Space>
+          <ConfigProvider renderEmpty={customizeRenderEmpty}>
+            <Table
+              className='ai-tip-table'
+              columns={columns}
+              dataSource={filterCommentList}
+              size="small"
+              pagination={{
+                pageSize,
+                showSizeChanger: false,
+                position: ["topRight", "none"]
+              }}
+              onChange={tableChange}
+            />
+          </ConfigProvider>
+        </>
+      )}
+
 
     </div>
   );

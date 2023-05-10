@@ -8,6 +8,12 @@
   }, {
     url: '/api/eros/pm/chat/message/total_list?chat_user_id',
     messageType: 'CHAT_BOX',
+  }, {
+    url: '/api/sns/web/v1/user/me',
+    messageType: 'ME',
+  }, {
+    url: '/api/eros/userqms/prof/apply/last',
+    messageType: 'PRO_ME',
   }];
   var XHR = XMLHttpRequest.prototype;
   var open = XHR.open;

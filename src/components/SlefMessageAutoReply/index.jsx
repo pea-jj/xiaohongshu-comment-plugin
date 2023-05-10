@@ -6,12 +6,15 @@ import './index.css';
 
 function SlefMessageAutoReply() {
   const [globalConfig, setGlobalConfig] = useState({});
+  const [nickName, setNickName] = useState(window.__cache_nickname || ''); // 当前用户名
   const [modal, contextModalHolder] = Modal.useModal();
   const getGlobalConfigRef = useRef({});
   const activeChatBoxRef = useRef({});
   const stopFigRef = useRef(false);
-  const { access } = useVerify();
+  const { access } = useVerify(nickName);
   const { selfMessageSwitch, selfMessageContent } = globalConfig;
+
+  const currentAccess = access?.includes('SELF_MESSAGE');
 
   const getRandomReply = (text) => {
     if (!text) return '';
@@ -42,13 +45,22 @@ function SlefMessageAutoReply() {
     })
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("message", function (e) {
+      const result = e.data;
+      const { type, message } = result;
+      if (type !== 'PRO_ME') return;
+      message?.data?.kolApply?.userName && setNickName(message?.data?.kolApply?.userName);
+    }, false);
+  }, []);
+
   // 接收injectjs消息，查询新消息
   useEffect(() => {
     const fn = function (e) {
       const result = e.data;
       const { type, message } = result;
       const { selfMessageSwitch, selfMessageContent } = getGlobalConfigRef.current;
-      if (stopFigRef.current || type !== 'CHAT_LIST' || !selfMessageSwitch || !selfMessageContent || !access) return;
+      if (stopFigRef.current || type !== 'CHAT_LIST' || !selfMessageSwitch || !selfMessageContent || !currentAccess) return;
       const { chatbox_list } = message.data;
       chatbox_list.forEach((item, i) => item.kIndex = i);
       const list = chatbox_list.filter(item => item.last_store_id > item.view_store_id);
@@ -61,7 +73,7 @@ function SlefMessageAutoReply() {
     return () => {
       window.removeEventListener("message", fn);
     }
-  }, [access]);
+  }, [currentAccess]);
 
   // 获取当前激活对话信息
   useEffect(() => {
@@ -131,7 +143,7 @@ function SlefMessageAutoReply() {
   return (
     <span className='self-message-tip'>
       {contextModalHolder}
-      { access ? ((selfMessageSwitch && selfMessageContent) ? '已开启' : '未开启') + '自动回复' : '验证秘钥中'}
+      { currentAccess ? ((selfMessageSwitch && selfMessageContent) ? '已开启' : '未开启') + '自动回复' : '验证秘钥中'}
     </span>
   );
 }
