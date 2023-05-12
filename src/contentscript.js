@@ -55,8 +55,8 @@ if (BIZ_TYPE === 'NOTE' || BIZ_TYPE === 'SELF_MESSAGE') {
       isFirstMsg = false;
     } else if (type === 'ME' && result?.message?.data?.nickname) {
       window.__cache_nickname = result?.message?.data?.nickname;
-    } else if (type === 'PRO_ME' && result?.message?.data?.kolApply?.userName) {
-      window.__cache_nickname = result?.message?.data?.kolApply?.userName;
+    } else if (type === 'PRO_ME_V2' && result?.message?.data?.nickName) {
+      window.__cache_nickname = result?.message?.data?.nickName;
     }
   }, false);
 }

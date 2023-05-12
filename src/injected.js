@@ -17,6 +17,9 @@
   }, {
     url: '/api/eros/userqms/prof/apply/last',
     messageType: 'PRO_ME',
+  }, {
+    url: '/api/eros/user/info',
+    messageType: 'PRO_ME_V2',
   }];
   var XHR = XMLHttpRequest.prototype;
   var open = XHR.open;

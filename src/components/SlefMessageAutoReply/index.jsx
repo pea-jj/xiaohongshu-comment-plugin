@@ -40,8 +40,8 @@ function SlefMessageAutoReply() {
     window.addEventListener("message", function (e) {
       const result = e.data;
       const { type, message } = result;
-      if (type !== 'PRO_ME') return;
-      message?.data?.kolApply?.userName && setNickName(message?.data?.kolApply?.userName);
+      if (type !== 'PRO_ME_V2') return;
+      message?.data?.nickName && setNickName(message?.data?.nickName);
     }, false);
   }, []);
 

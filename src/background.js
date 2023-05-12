@@ -80,6 +80,7 @@ export class StealRequestHeader {
 
 export const stealRequestHeaderInstance = new StealRequestHeader();
 
+// 废弃
 window.chrome.webRequest.onBeforeSendHeaders.addListener(
   function(details) {
     const { method, requestHeaders } = details;
