@@ -1,8 +1,12 @@
 export const getBizType = () => {
-  const whiteUrlList = ["https://www.xiaohongshu.com/explore", "https://pro.xiaohongshu.com/enterprise/message/reply"];
-  if (window.location.href.match(whiteUrlList[0])) {
+  const whiteUrlList = [
+    "https://www.xiaohongshu.com/explore",
+    "https://www.xiaohongshu.com/search_result",
+    "https://pro.xiaohongshu.com/enterprise/message/reply"
+  ];
+  if (window.location.href.match(whiteUrlList[0]) || window.location.href.match(whiteUrlList[1])) {
     return 'NOTE'
-  } else if (window.location.href.match(whiteUrlList[1])) {
+  } else if (window.location.href.match(whiteUrlList[2])) {
     return 'SELF_MESSAGE'
   }
   return '';
@@ -25,3 +29,13 @@ export function getParameterByName(name, url) {
   if (!results[2]) return '';
   return decodeURIComponent(results[2]);
 }
+
+export const getRandomReply = (text) => {
+  if (!text) return '';
+  const list = text.split(/[0-9]\. /);
+  if (list.length > 1) {
+    list.shift();
+  }
+  let randomIndex = Math.floor(Math.random() * list.length);
+  return list[randomIndex];
+};

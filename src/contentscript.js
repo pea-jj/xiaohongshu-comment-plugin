@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 if (BIZ_TYPE === 'NOTE') {
   window.addEventListener("pushState", function (e) {
     console.log('pushstate')
-    const id = window.location.pathname.match(/.*explore\/(.*)/)?.[1];
+    const id = window.location.pathname.match(/.*(explore|search_result)\/(.*)/)?.[2];
     id && window.location.reload();
   });
 }
@@ -62,7 +62,7 @@ if (BIZ_TYPE === 'NOTE' || BIZ_TYPE === 'SELF_MESSAGE') {
 }
 
 const addReplyPanel = () => {
-  const id = window.location.pathname.match(/.*explore\/(.*)/)[1];
+  const id = window.location.pathname.match(/.*(explore|search_result)\/(.*)/)?.[2];;
   console.log('id', id);
   if (!id) {
     return;

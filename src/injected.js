@@ -12,6 +12,9 @@
     url: '/api/sns/web/v1/user/me',
     messageType: 'ME',
   }, {
+    url: '/api/sns/web/v2/user/me',
+    messageType: 'ME',
+  }, {
     url: '/api/eros/userqms/prof/apply/last',
     messageType: 'PRO_ME',
   }];

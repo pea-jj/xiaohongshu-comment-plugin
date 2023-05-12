@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {  Modal } from 'antd';
-import { sleepTime, getParameterByName } from '../../utils/index';
+import { sleepTime, getParameterByName, getRandomReply } from '../../utils/index';
 import useVerify from '../../hooks/verify';
 import './index.css';
 
@@ -10,21 +10,12 @@ function SlefMessageAutoReply() {
   const [modal, contextModalHolder] = Modal.useModal();
   const getGlobalConfigRef = useRef({});
   const activeChatBoxRef = useRef({});
+  const hasReplyListRef = useRef([]);
   const stopFigRef = useRef(false);
   const { access } = useVerify(nickName);
   const { selfMessageSwitch, selfMessageContent } = globalConfig;
 
   const currentAccess = access?.includes('SELF_MESSAGE');
-
-  const getRandomReply = (text) => {
-    if (!text) return '';
-    const list = text.split(/[0-9]\. /);
-    if (list.length > 1) {
-      list.shift();
-    }
-    let randomIndex = Math.floor(Math.random() * list.length);
-    return list[randomIndex];
-  };
 
   // 获取全局公共配置
   const getGlobalConfig = () => {
@@ -107,7 +98,23 @@ function SlefMessageAutoReply() {
         return sleepTime(3000);
       }).then(() => {
         const { chatUserId, chatBoxMsgList } = activeChatBoxRef.current;
+        console.log(chatUserId, user_id, chatBoxMsgList);
         if (chatUserId !== user_id) return;
+        if (hasReplyListRef.current.includes(chatUserId)) return;
+        hasReplyListRef.current.push(chatUserId);
+        let hasReply = false;
+        for (let index = 0; index < chatBoxMsgList.length; index++) {
+          const { message_type, receiver_id, content } = chatBoxMsgList[index];
+          if (message_type === 'BLANK' || content.includes('我们已相互关注')) {
+            continue;
+          }
+          if (receiver_id === chatUserId) {
+            console.log('aaa', receiver_id)
+            hasReply = true;
+            break;
+          }
+        }
+        if (hasReply) return;
         const commentInputEl = document.querySelector('.pm-input .input-area')
         commentInputEl.focus();
         const text = getRandomReply(getGlobalConfigRef.current.selfMessageContent);

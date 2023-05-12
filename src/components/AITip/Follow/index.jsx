@@ -41,7 +41,7 @@ export default () => {
   return (
     <>
       {contextModalHolder}
-      <Button onClick={createFollowTask} type="primary" style={{ marginBottom: 10 }}>开启自动关注</Button>
+      <Button onClick={createFollowTask} type="primary" style={{ marginBottom: 10 }}>开启自动关注{Array.from(new Set(willFollowUserList)).length ? `共${Array.from(new Set(willFollowUserList)).length}位用户` : ''}</Button>
     </>
   )
 }

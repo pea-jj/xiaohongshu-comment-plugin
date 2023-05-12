@@ -23,7 +23,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.xiaohongshu.com/explore*", "https://pro.xiaohongshu.com/enterprise/message/reply*"],
+      "matches": ["https://www.xiaohongshu.com/explore*", "https://www.xiaohongshu.com/search_result*", "https://pro.xiaohongshu.com/enterprise/message/reply*"],
       "run_at": "document_start",
       "js": ["static/js/contentscript.js"],
       "css": ["static/css/contentscript.css"]

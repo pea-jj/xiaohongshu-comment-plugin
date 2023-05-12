@@ -4,6 +4,7 @@ import { Table, Input, Button, Card, Space, message, ConfigProvider, Modal } fro
 import { cloneDeep } from 'lodash';
 import { getAiReplyList } from '../../api';
 import useVerify from '../../hooks/verify';
+import { getRandomReply, sleepTime } from '../../utils/index';
 import FollowBtn from './Follow';
 import './index.css';
 
@@ -13,18 +14,18 @@ let index = 0;
 function AiTip() {
   const [me, setMe] = useState(''); // 当前用户id
   const [nickName, setNickName] = useState(window.__cache_nickname || ''); // 当前用户名
-  const [globalConfig, setGlobalConfig] = useState({});
+  const [globalConfig, setGlobalConfig] = useState({}); // background全局配置
   const [commentList, setCommentList] = useState([]); // 所有评论
   const [filterCommentList, setFilterCommentList] = useState([]); // 过滤后、待回复评论
-  const [current, setCurrent] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [current, setCurrent] = useState(1); // 页数
+  const [loading, setLoading] = useState(false); // 智能回复按钮loading
+  const [zCommentsQueryCount, setZCommentsQueryCount] = useState(0);
   const [noteMainContent, setNoteMainContent] = useState(''); // 笔记标题
   const [messageApi, contextHolder] = message.useMessage();
   const [modal, contextModalHolder] = Modal.useModal();
   const { access } = useVerify(nickName);
   const currentAccess = access?.includes('COMMENT');
   const currentFollowAccess = access?.includes('FOLLOW');
-  console.log('xxx', nickName)
   // 表格配置
   const columns = [
     {
@@ -34,9 +35,31 @@ function AiTip() {
       render: (_, record) => record.index + 1,
     },
     {
+      title: '评论人',
+      dataIndex: 'user_info.nickname',
+      key: 'nickName',
+      render: (_, record) => record.user_info.nickname,
+    },
+    {
+      title: '评论时间',
+      dataIndex: 'create_time',
+      key: 'create_time',
+      render: (_, record) => {
+        var date = new Date(record.create_time);
+        // 获取月份、日期和分钟
+        var month = date.getMonth() + 1; // 月份从0开始，所以要加1
+        var day = date.getDate();
+        var hour = date.getHours();
+        var minutes = date.getMinutes();
+        var formattedDate = month + "/" + day + " " + hour + ":" + minutes;
+        return formattedDate;
+      },
+    },
+    {
       title: '评论内容',
       dataIndex: 'content',
       key: 'content',
+      width: 150,
     },
     {
       title: '我的回复',
@@ -115,13 +138,39 @@ function AiTip() {
     })
   }, []);
 
+  // 修改页面样式 使得插件宽度足够
+  useEffect(() => {
+    if (document.querySelector('.interaction-container')) {
+      document.querySelector('.interaction-container').style.width = '250px'
+    }
+    if (document.querySelector('.media-container')) {
+      document.querySelector('.media-container').style.width = '100px'
+    }
+    if (document.querySelector('.side-bar')) {
+      document.querySelector('.side-bar').style.flexBasis = '100px'
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!document.querySelector('.end-container')) {
+      setTimeout(() => {
+        if (document.querySelector('.note-scroller')) {
+          document.querySelector('.note-scroller').scrollTop = document.querySelector('.note-scroller').scrollHeight
+        }
+        setZCommentsQueryCount(zCommentsQueryCount + 1);
+      }, 1500);
+    }
+  }, [zCommentsQueryCount]);
+
+
+
   // 过滤评论列表，表格中展示内容
   useEffect(() => {
     if (!commentList?.length) return;
-    const { commentNumLimit } = globalConfig;
+    // const { commentNumLimit } = globalConfig;
 
     let temp = commentList.filter(v => !v.content.includes('@'));
-    temp = temp.filter(v => v.content.length > commentNumLimit);
+    // temp = temp.filter(v => v.content.length > commentNumLimit);
     temp = temp.filter(v => {
       const { user_id } = v.user_info; // 当前评论用户
       if (me === user_id) return false;
@@ -129,13 +178,12 @@ function AiTip() {
     })
     temp.forEach((v, index) => v.index = index);
     setFilterCommentList(temp);
-  }, [commentList, globalConfig]);
+  }, [commentList]);
 
   // 获取智能回复
-  const autoReply = async () => {
+  const getAIReply = async () => {
     const config = await getGlobalConfig();
-    console.log('globalConfig', config);
-    const { style, tokenNumLimit, followSwitch } = config;
+    const { style = "1", tokenNumLimit = 15, followSwitch } = config;
 
     const startIndex = (current - 1) * pageSize;
     const lastIndex = current * pageSize;
@@ -181,8 +229,17 @@ function AiTip() {
     })
   }
 
-  // 自动发送
-  const autoSendReply = async () => {
+  const getSolidReply = async () => {
+    const config = await getGlobalConfig();
+    const { commentsReplyContent } = config;
+    for (let i = 0; i < filterCommentList.length; i++) {
+      filterCommentList[i].reply = getRandomReply(commentsReplyContent);
+    }
+    setFilterCommentList([...filterCommentList]);
+  }
+
+  // 自动发送ai回复
+  const autoSendAIReply = async () => {
     const result = filterCommentList.filter(item => item.reply && !item.hasReply);
     const instance = modal.success({
       title: `共有${result.length}条回复待发送`,
@@ -203,11 +260,7 @@ function AiTip() {
         filterCommentList[index].hasReply = true;
         i++;
         // 异步 防封
-        await new Promise((r) => {
-          setTimeout(() => {
-            r();
-          }, 5000);
-        })
+        await sleepTime(5000 + Math.random() * 2000);
       }
     }
     instance.destroy();
@@ -261,7 +314,7 @@ function AiTip() {
     <div style={{
       marginLeft: 30,
       color: 'red',
-    }}>验证秘钥中</div>
+    }}>{nickName ? '验证秘钥中' : '找不到登录信息'}</div>
   );
 
   return (
@@ -275,8 +328,10 @@ function AiTip() {
             <Input.TextArea value={noteMainContent} placeholder="描述写下笔记的主要内容" bordered={false} onChange={inputOnChange} />
           </Card>
           <Space wrap style={{ margin: '20px 0' }}>
-            <Button onClick={autoReply} type="primary" disabled={!filterCommentList?.length} loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>
-            <Button onClick={autoSendReply} type="primary" disabled={!filterCommentList?.length}>自动发送评论</Button>
+            { globalConfig.replyType === 'AI' && <Button onClick={getAIReply} type="primary" disabled={!filterCommentList?.length} loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>}
+            { globalConfig.replyType === 'RANDOM' && <Button onClick={getSolidReply} type="primary" disabled={!filterCommentList?.length} >生成固定话术回复</Button>}
+            <Button onClick={autoSendAIReply} type="primary" disabled={!filterCommentList?.length}>自动发送回复{`(共${filterCommentList.filter(item => item.reply && !item.hasReply)?.length}条)`}</Button>
+            {/* <Button onClick={autoSendRandomReply} type="primary" disabled={!filterCommentList?.length}>自动发送固定话术回复{`(共${filterCommentList.filter(item => !item.hasReply)?.length}条)`}</Button> */}
           </Space>
           <ConfigProvider renderEmpty={customizeRenderEmpty}>
             <Table
