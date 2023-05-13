@@ -111,13 +111,16 @@ function App() {
           <InputNumber min={0} max={20} />
         </Form.Item> */}
         <h5>私信配置</h5>
-        <Form.Item label="自动回复" name="selfMessageSwitch" valuePropName="checked" tooltip="是否开启私信自动回复">
+        <Form.Item label="开启自动回复" name="selfMessageSwitch" valuePropName="checked" extra="若填写，会对私信消息自动回复一条文字话术和图片。注意自动发送的消息对同一用户只会发一次">
           <Switch />
         </Form.Item>
-        <Form.Item label="固定话术" name="selfMessageContent" tooltip="多条话术随机展示，格式严格按照1. 2. 3. 索引来哦，注意有空格">
+        <Form.Item label="文字话术" name="selfMessageContent" tooltip="多条话术随机展示，格式严格按照1. 2. 3. 索引来哦，注意有空格" extra="注意1. 后面有个空格">
           <Input.TextArea placeholder="1. 你好呀~加xxxxxx可以了解更多哦！ 2. 加群" allowClear autoSize />
         </Form.Item>
-        <Button onClick={testSelfMessageContent} style={{ marginLeft: 140 }}>点我测试随机话术</Button>
+        {/* <Button onClick={testSelfMessageContent} style={{ marginLeft: 140 }}>点我测试随机文字话术</Button> */}
+        <Form.Item label="图片回复" name="selfMessageImage" tooltip="请把图片发给博主以获取填写方式" extra="请把图片发给博主以获取填写方式">
+          <Input.TextArea placeholder="请把图片发给博主以获取填写方式,该功能额外付费" allowClear autoSize />
+        </Form.Item>
       </Form>
     </div>
   );

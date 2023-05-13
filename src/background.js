@@ -1,5 +1,5 @@
 import { initialValues } from "./constants";
-// 预留一个方法给popup调用
+// pop配置面板全局数据
 let globalConfig = initialValues;
 window.setGlobalConfig = (data) => {
   globalConfig = data;
@@ -16,6 +16,7 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
   }
 });
 
+// 打开标签进行关注任务
 window.chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   const { type, data } = request;
   if (type === 'follow') {
@@ -78,30 +79,30 @@ export class StealRequestHeader {
   }
 }
 
-export const stealRequestHeaderInstance = new StealRequestHeader();
+// export const stealRequestHeaderInstance = new StealRequestHeader();
 
 // 废弃
-window.chrome.webRequest.onBeforeSendHeaders.addListener(
-  function(details) {
-    const { method, requestHeaders } = details;
-    if (method === 'OPTIONS') return;
-    console.log('details', details);
-    const headersWhiteList = ['X-t', 'x-b3-traceid', 'X-s', 'X-s-common', 'X-S-Common'];
-    const result = {};
-    for (var i = 0; i < requestHeaders.length; ++i) {
-      if (headersWhiteList.includes(requestHeaders[i].name)) {
-        result[requestHeaders[i].name] = requestHeaders[i].value;
-      }
-    }
-    stealRequestHeaderInstance.setHeaders(result);
-    return { requestHeaders };
-  },
-  {
-    urls: [
-      "*://edith.xiaohongshu.com/api/sns/web/v2/comment/page*",
-      "*://edith.xiaohongshu.com/api/sns/web/v1/comment/post*",
-    ]},
-  ["blocking", "requestHeaders"]
-);
+// window.chrome.webRequest.onBeforeSendHeaders.addListener(
+//   function(details) {
+//     const { method, requestHeaders } = details;
+//     if (method === 'OPTIONS') return;
+//     console.log('details', details);
+//     const headersWhiteList = ['X-t', 'x-b3-traceid', 'X-s', 'X-s-common', 'X-S-Common'];
+//     const result = {};
+//     for (var i = 0; i < requestHeaders.length; ++i) {
+//       if (headersWhiteList.includes(requestHeaders[i].name)) {
+//         result[requestHeaders[i].name] = requestHeaders[i].value;
+//       }
+//     }
+//     stealRequestHeaderInstance.setHeaders(result);
+//     return { requestHeaders };
+//   },
+//   {
+//     urls: [
+//       "*://edith.xiaohongshu.com/api/sns/web/v2/comment/page*",
+//       "*://edith.xiaohongshu.com/api/sns/web/v1/comment/post*",
+//     ]},
+//   ["blocking", "requestHeaders"]
+// );
 
-window.stealRequestHeaderInstance = stealRequestHeaderInstance;
+// window.stealRequestHeaderInstance = stealRequestHeaderInstance;

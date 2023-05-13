@@ -35,9 +35,9 @@
   };
 
   XHR.send = function (postData) {
+    var url = this._url ? this._url.toLowerCase() : this._url;
     this.addEventListener('load', function () {
-
-      var myUrl = this._url ? this._url.toLowerCase() : this._url;
+      var myUrl = url;
       if (myUrl) {
         if (this.responseType != 'blob' && this.responseText) {
           try {
@@ -52,6 +52,25 @@
         }
       }
     });
+    if (url.includes('/api/eros/pm/chat/message/send')) {
+      try {
+        const data = JSON.parse(postData);
+        const { content, content_type, receiver_id } = data || {};
+        if (content_type === 'TEXT' && content?.startsWith('<image>')) {
+          const str = content.split('<image> ')?.[1]?.trim();
+          const hackData = {
+            content: JSON.stringify(JSON.parse(str)),
+            content_type: "IMAGE",
+            receiver_id,
+          }
+          console.log('xxx', hackData)
+          send.apply(this, [JSON.stringify(hackData)])
+          return;
+        }
+      } catch (error) {
+        console.log('send error', error)
+      }
+    }
     return send.apply(this, arguments);
   };
 
