@@ -34,9 +34,9 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
             window.chrome.tabs.executeScript(tab.id, { code: `
               setTimeout(() => {
                 document.querySelector('.user-info .follow') && document.querySelector('.user-info .follow').click();
-                document.querySelector('.note-item .like-wrapper') && document.querySelector('.note-item .like-wrapper').click();
               }, 2000 + Math.random() * 3000)
               ` });
+            // document.querySelector('.note-item .like-wrapper') && document.querySelector('.note-item .like-wrapper').click();
             setTimeout(() => {
               if (data[i + 1]) {
                 window.chrome.tabs.update(
@@ -60,6 +60,21 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
         window.chrome.windows.remove(
           followWindow.id,
         )
+      },
+    )
+  }
+});
+
+// 打开标签进行自动回复任务
+window.chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  const { type, data } = request;
+  if (type === 'autoCommentReply') {
+    window.chrome.windows.create(
+      {
+        url: data.map(v => 'https://www.xiaohongshu.com/explore/' + v + '?_s=1'),
+      },
+      async (followWindow) => {
+        console.log('window', followWindow);
       },
     )
   }

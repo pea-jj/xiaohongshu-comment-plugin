@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import AITip from './components/AITip';
 import SlefMessageAutoReply from './components/SlefMessageAutoReply';
+import Account from './components/Account';
 import { getBizType } from './utils/index';
 
 const BIZ_TYPE = getBizType();
@@ -30,6 +31,12 @@ document.addEventListener('DOMContentLoaded', function () {
       addSelfMessageProcess();
     }, 2000);
   }
+
+  if (BIZ_TYPE === 'ACCOUNT') {
+    setTimeout(() => {
+      addAccountPanel();
+    }, 1000);
+  }
 });
 
 if (BIZ_TYPE === 'NOTE') {
@@ -41,25 +48,25 @@ if (BIZ_TYPE === 'NOTE') {
 }
 
 // 缓存消息消息
-if (BIZ_TYPE === 'NOTE' || BIZ_TYPE === 'SELF_MESSAGE') {
-  let isFirstMsg = true;
-  window.addEventListener("message", function (e) {
-    const result = e.data;
-    const { type } = result;
-    // console.log('xxx', type, result.message)
-    if (type === 'COMMENT_LIST') {
-      // 缓存评论
-      if (isFirstMsg) {
-        window.__cache_comments = result;
-      }
-      isFirstMsg = false;
-    } else if (type === 'ME' && result?.message?.data?.nickname) {
-      window.__cache_nickname = result?.message?.data?.nickname;
-    } else if (type === 'PRO_ME_V2' && result?.message?.data?.nickName) {
-      window.__cache_nickname = result?.message?.data?.nickName;
+let isFirstMsg = true;
+window.addEventListener("message", function (e) {
+  const result = e.data;
+  const { type } = result;
+  if (type === 'COMMENT_LIST') {
+    // 缓存评论
+    if (isFirstMsg) {
+      window.__cache_comments = result;
     }
-  }, false);
-}
+    isFirstMsg = false;
+  } else if (type === 'NOTE_LIST') {
+    window.__note_list = result.message?.data?.notes;
+  } else if (type === 'ME' && result?.message?.data?.nickname) {
+    window.__cache_nickname = result?.message?.data?.nickname;
+    window.__cache_userId = result?.message?.data?.user_id;
+  } else if (type === 'PRO_ME_V2' && result?.message?.data?.nickName) {
+    window.__cache_nickname = result?.message?.data?.nickName;
+  }
+}, false);
 
 const addReplyPanel = () => {
   const id = window.location.pathname.match(/.*(explore|search_result)\/(.*)/)?.[2];;
@@ -108,6 +115,24 @@ const addSelfMessageProcess = () => {
   );
 }
 
+const addAccountPanel = () => {
+  const injectExtensionEl = document.querySelector('#ai-extension-x');
+  if (injectExtensionEl) return;
+  const extension = document.createElement('div');
+  extension.id = 'ai-extension-x';
+  const root = document.querySelector('.user')
+  if (!root) {
+    setTimeout(() => {
+      addAccountPanel();
+    }, 1000);
+    return;
+  }
+  root.appendChild(extension);
 
-
-
+  const rootR = ReactDOM.createRoot(document.getElementById('ai-extension-x'));
+  rootR.render(
+    <React.StrictMode>
+      <Account />
+    </React.StrictMode>
+  );
+}

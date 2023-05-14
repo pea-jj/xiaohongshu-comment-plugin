@@ -2,12 +2,15 @@ export const getBizType = () => {
   const whiteUrlList = [
     "https://www.xiaohongshu.com/explore",
     "https://www.xiaohongshu.com/search_result",
-    "https://pro.xiaohongshu.com/enterprise/message/reply"
+    "https://pro.xiaohongshu.com/enterprise/message/reply",
+    "https://www.xiaohongshu.com/user/profile"
   ];
   if (window.location.href.match(whiteUrlList[0]) || window.location.href.match(whiteUrlList[1])) {
     return 'NOTE'
   } else if (window.location.href.match(whiteUrlList[2])) {
     return 'SELF_MESSAGE'
+  } else if (window.location.href.match(whiteUrlList[3])) {
+    return 'ACCOUNT'
   }
   return '';
 }

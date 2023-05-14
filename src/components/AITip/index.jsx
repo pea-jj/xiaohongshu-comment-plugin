@@ -324,14 +324,13 @@ function AiTip() {
       {currentFollowAccess && <FollowBtn />}
       {currentAccess && (
         <>
-          <Card size="small" title="笔记内容【ai是基于笔记内容去生成回复的，这里可以详细总结下你的笔记~】">
+          {globalConfig.replyType === 'AI' && <Card size="small" title="笔记内容【ai是基于笔记内容去生成回复的，这里可以详细总结下你的笔记~】">
             <Input.TextArea value={noteMainContent} placeholder="描述写下笔记的主要内容" bordered={false} onChange={inputOnChange} />
-          </Card>
+          </Card>}
           <Space wrap style={{ margin: '20px 0' }}>
             { globalConfig.replyType === 'AI' && <Button onClick={getAIReply} type="primary" disabled={!filterCommentList?.length} loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>}
             { globalConfig.replyType === 'RANDOM' && <Button onClick={getSolidReply} type="primary" disabled={!filterCommentList?.length} >生成固定话术回复</Button>}
             <Button onClick={autoSendAIReply} type="primary" disabled={!filterCommentList?.length}>自动发送回复{`(共${filterCommentList.filter(item => item.reply && !item.hasReply)?.length}条)`}</Button>
-            {/* <Button onClick={autoSendRandomReply} type="primary" disabled={!filterCommentList?.length}>自动发送固定话术回复{`(共${filterCommentList.filter(item => !item.hasReply)?.length}条)`}</Button> */}
           </Space>
           <ConfigProvider renderEmpty={customizeRenderEmpty}>
             <Table

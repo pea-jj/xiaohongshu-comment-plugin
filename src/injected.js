@@ -20,6 +20,9 @@
   }, {
     url: '/api/eros/user/info',
     messageType: 'PRO_ME_V2',
+  }, {
+    url: '/api/sns/web/v1/user_posted',
+    messageType: 'NOTE_LIST',
   }];
   var XHR = XMLHttpRequest.prototype;
   var open = XHR.open;
