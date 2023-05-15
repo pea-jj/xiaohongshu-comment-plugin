@@ -71,7 +71,7 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
   if (type === 'autoCommentReply') {
     window.chrome.windows.create(
       {
-        url: data.map(v => 'https://www.xiaohongshu.com/explore/' + v + '?_s=1'),
+        url: data.map((v, index) => 'https://www.xiaohongshu.com/explore/' + v + `?_s=${(index + 1) * 8}`),
       },
       async (followWindow) => {
         console.log('window', followWindow);

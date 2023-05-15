@@ -81,7 +81,14 @@ const addReplyPanel = () => {
   const extension = document.createElement('div');
   extension.id = 'ai-extension-x';
   const root = document.querySelector('.note-detail-mask') || document.querySelector('.outer-link-container')
-  root.appendChild(extension);
+  if (!root) {
+    setTimeout(() => {
+      addReplyPanel();
+    }, 1000);
+    return;
+  }
+  root?.appendChild(extension);
+  
 
   const rootR = ReactDOM.createRoot(document.getElementById('ai-extension-x'));
   rootR.render(

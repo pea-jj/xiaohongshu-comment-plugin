@@ -4,7 +4,7 @@ import { Table, Input, Button, Card, Space, message, ConfigProvider, Modal } fro
 import { cloneDeep } from 'lodash';
 import { getAiReplyList } from '../../api';
 import useVerify from '../../hooks/verify';
-import { getRandomReply, sleepTime } from '../../utils/index';
+import { getRandomReply, sleepTime, getParameterByName } from '../../utils/index';
 import FollowBtn from './Follow';
 import './index.css';
 
@@ -26,6 +26,8 @@ function AiTip() {
   const { access } = useVerify(nickName);
   const currentAccess = access?.includes('COMMENT');
   const currentFollowAccess = access?.includes('FOLLOW');
+  const isStartAutoReply = getParameterByName('_s');
+
   // 表格配置
   const columns = [
     {
@@ -151,16 +153,34 @@ function AiTip() {
     }
   }, []);
 
+  // 自动滚动到底部
   useEffect(() => {
+    if (!access?.length) return;
     if (!document.querySelector('.end-container')) {
       setTimeout(() => {
         if (document.querySelector('.note-scroller')) {
+          console.log('xx', document.querySelector('.note-scroller').scrollHeight)
           document.querySelector('.note-scroller').scrollTop = document.querySelector('.note-scroller').scrollHeight
         }
         setZCommentsQueryCount(zCommentsQueryCount + 1);
-      }, 1500);
+      }, 2500);
     }
-  }, [zCommentsQueryCount]);
+  }, [zCommentsQueryCount, currentAccess, currentFollowAccess]);
+
+
+  useEffect(() => {
+    if (!isStartAutoReply) return;
+    (async function() {
+      await sleepTime(180000 + Number(isStartAutoReply || 0) * 1000);
+      // getSolidReply();
+      document.getElementById('solid')?.click();
+      await sleepTime(2000);
+      // await autoSendAIReply();
+      document.getElementById('send')?.click();
+      await sleepTime(30000);
+      window.location.reload();
+    })();
+  }, []);
 
 
 
@@ -241,6 +261,7 @@ function AiTip() {
   // 自动发送ai回复
   const autoSendAIReply = async () => {
     const result = filterCommentList.filter(item => item.reply && !item.hasReply);
+    if (!result.length) return;
     const instance = modal.success({
       title: `共有${result.length}条回复待发送`,
       content: `共有${result.length}条回复待发送，请等待... ...`,
@@ -321,7 +342,7 @@ function AiTip() {
     <div className='ai-tip-wrapper'>
       {contextHolder}
       {contextModalHolder}
-      {currentFollowAccess && <FollowBtn />}
+      {currentFollowAccess && <div><FollowBtn /></div>}
       {currentAccess && (
         <>
           {globalConfig.replyType === 'AI' && <Card size="small" title="笔记内容【ai是基于笔记内容去生成回复的，这里可以详细总结下你的笔记~】">
@@ -329,8 +350,8 @@ function AiTip() {
           </Card>}
           <Space wrap style={{ margin: '20px 0' }}>
             { globalConfig.replyType === 'AI' && <Button onClick={getAIReply} type="primary" disabled={!filterCommentList?.length} loading={loading}>{loading ? '加速思考中' : '生成智能回复'}</Button>}
-            { globalConfig.replyType === 'RANDOM' && <Button onClick={getSolidReply} type="primary" disabled={!filterCommentList?.length} >生成固定话术回复</Button>}
-            <Button onClick={autoSendAIReply} type="primary" disabled={!filterCommentList?.length}>自动发送回复{`(共${filterCommentList.filter(item => item.reply && !item.hasReply)?.length}条)`}</Button>
+            { globalConfig.replyType === 'RANDOM' && <Button id="solid" onClick={getSolidReply} type="primary" disabled={!filterCommentList?.length} >生成固定话术回复</Button>}
+            <Button id="send" onClick={autoSendAIReply} type="primary" disabled={!filterCommentList?.length}>自动发送回复{`(共${filterCommentList.filter(item => item.reply && !item.hasReply)?.length}条)`}</Button>
           </Space>
           <ConfigProvider renderEmpty={customizeRenderEmpty}>
             <Table

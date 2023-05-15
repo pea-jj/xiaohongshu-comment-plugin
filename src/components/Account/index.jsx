@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, message, Modal, Form, Select } from 'antd';
 import useVerify from '../../hooks/verify';
-import { sleepTime } from '../../utils/index';
 import './index.css';
 
 function Account() {
@@ -90,6 +89,7 @@ function Account() {
       data: notes,
     }, function (response) {
       console.log('任务结束', response)
+      setIsModalOpen(false);
     });
   }
 
