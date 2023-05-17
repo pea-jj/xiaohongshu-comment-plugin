@@ -5,16 +5,18 @@ import useVerify from '../../hooks/verify';
 import './index.css';
 
 function SlefMessageAutoReply() {
-  const [globalConfig, setGlobalConfig] = useState({});
+  const [globalConfig, setGlobalConfig] = useState({}); // 全局配置
+  const getGlobalConfigRef = useRef({}); // 全局配置
   const [nickName, setNickName] = useState(window.__cache_nickname || ''); // 当前用户名
-  const [modal, contextModalHolder] = Modal.useModal();
-  const getGlobalConfigRef = useRef({});
-  const activeChatBoxRef = useRef({});
-  const hasReplyListRef = useRef([]);
-  const stopFigRef = useRef(false);
-  const { access } = useVerify(nickName);
+  const activeChatBoxRef = useRef({}); // 当前的对话框
+  const hasReplyListRef = useRef([]); // 当前窗口回复过的集合，回复过不会再次回复
+  const stopFigRef = useRef(false); // 停止监听消息列表
+  const emptyCheckRef = useRef(false); // 空闲检测 补偿未回复的消息
+  const inCheckRef = useRef(false); // 是否在检测中
+  const { access } = useVerify(nickName); // 权限
   const { selfMessageSwitch, selfMessageContent, selfMessageImage } = globalConfig;
 
+  const [modal, contextModalHolder] = Modal.useModal();
   const currentAccess = access?.includes('SELF_MESSAGE');
   const currentImageAccess = access?.includes('SELF_MESSAGE_IMAGE');
   const hasMessageContent = !!(selfMessageContent || selfMessageImage);
@@ -63,6 +65,16 @@ function SlefMessageAutoReply() {
       console.log('开始批处理', list)
       if (list?.length) {
         autoSendMsg(list);
+      } else {
+        // autoSendMsg()
+        if (!inCheckRef.current) {
+          refreshCheckFlag();
+        }
+        if (emptyCheckRef.current) {
+          autoSendMsg(chatbox_list.slice(0, 6));
+          emptyCheckRef.current = false;
+          refreshCheckFlag();
+        }
       }
     }
     window.addEventListener("message", fn, false);
@@ -85,6 +97,14 @@ function SlefMessageAutoReply() {
       }
     }, false);
   }, []);
+
+  const refreshCheckFlag = () => {
+    inCheckRef.current = true;
+    setTimeout(() => {
+      emptyCheckRef.current = true;
+      inCheckRef.current = false;
+    }, 3 * 60 * 1000);
+  }
 
   const sendText = (text) => {
     if (!text) return;
@@ -110,7 +130,7 @@ function SlefMessageAutoReply() {
   const autoSendMsg = (list) => {
     const instance = modal.success({
       title: `注意`,
-      content: `你收到${list.length}位用户新消息，正在处理，请稍等... ...`,
+      content: `程序正在处理，请稍等... ...`,
     });
     stopFigRef.current = true;
     const { selfMessageContent, selfMessageImage } = getGlobalConfigRef.current;
