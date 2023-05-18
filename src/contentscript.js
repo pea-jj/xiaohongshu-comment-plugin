@@ -16,7 +16,6 @@ s.onload = function () {
 };
 (document.head || document.documentElement).appendChild(s);
 
-
 document.addEventListener('DOMContentLoaded', function () {
   // 延时加载面板 等待主dom
   console.log('加载插件', BIZ_TYPE);
@@ -124,12 +123,15 @@ const addSelfMessageProcess = () => {
 
 const addAccountPanel = () => {
   const injectExtensionEl = document.querySelector('#ai-extension-x');
+  console.log('injectExtensionEl', injectExtensionEl)
   if (injectExtensionEl) return;
   const extension = document.createElement('div');
   extension.id = 'ai-extension-x';
-  const root = document.querySelector('.user')
+  const root = document.querySelector('.user-page .user')
+  console.log('root', root)
   if (!root) {
     setTimeout(() => {
+      console.log('循环')
       addAccountPanel();
     }, 1000);
     return;

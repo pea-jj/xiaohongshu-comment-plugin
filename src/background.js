@@ -80,6 +80,22 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
   }
 });
 
+// window.chrome.webRequest.onBeforeRequest.addListener(
+//   ({ url }) => {
+//     console.log('mmmm', url)
+//     if (url.includes('main.e6b0c9c.js')) {
+//       console.log('qqq')
+//       return {
+//         redirectUrl: url.replace('main.e6b0c9c.js', 'main.7e8a9a9.js')
+//       };
+//     }
+//   },
+//   {
+//     urls: ['https://fe-static.xhscdn.com/formula-static/xhs-pc-web/public/js/main.e6b0c9c.js'],
+//   },
+//   ['blocking']
+// )
+
 export class StealRequestHeader {
   constructor() {
     this.headers = {};

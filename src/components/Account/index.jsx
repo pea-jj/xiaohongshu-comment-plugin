@@ -35,11 +35,32 @@ function Account() {
     }, false);
   }, []);
 
+  useEffect(() => {
+    if (noteList.length) return;
+    const r = document.querySelector('.tab-content-item .feeds-container');
+    const list = r.children;
+    const domNotesResult = [];
+    for (let index = 0; index < list.length; index++) {
+      const element = list[index];
+      const href = element.querySelector('a')?.getAttribute('href');
+      console.log('mmm', element.querySelector('a'), element.querySelector('a')?.getAttribute('href'))
+      var id = href?.match(/explore\/(.+)/)?.[1];
+      if (!id) continue;
+      const text = element.querySelector('.footer span').innerText;
+      domNotesResult.push({
+        note_id: id,
+        display_title: text,
+      })
+    }
+    console.log('aaa', domNotesResult);
+    domNotesResult.length && setNoteList(domNotesResult);
+  }, [noteList.length]);
+
   const notesSelectOptions = useMemo(() => {
     return noteList.map(item => {
       return {
         value: item.note_id,
-        label: item.display_title + `[喜欢：${item?.interact_info?.liked_count}]`
+        label: item.display_title
       };
     })
   }, [noteList]);
