@@ -40,9 +40,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 if (BIZ_TYPE === 'NOTE') {
   window.addEventListener("pushState", function (e) {
-    console.log('pushstate')
+    console.log('pushstate', window.location.pathname, e)
     const id = window.location.pathname.match(/.*(explore|search_result)\/(.*)/)?.[2];
-    id && window.location.reload();
+    // const id = window.location.pathname.match(/.*(explore)\/(.*)/)?.[2];
+
+    if (id) {
+      window.location.href = `https://www.xiaohongshu.com/explore/${id}`
+    };
   });
 }
 
