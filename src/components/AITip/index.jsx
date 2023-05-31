@@ -156,11 +156,18 @@ function AiTip() {
   // 自动滚动到底部
   useEffect(() => {
     if (!access?.length) return;
+    if (zCommentsQueryCount > 15) return;
     if (!document.querySelector('.end-container')) {
       setTimeout(() => {
         if (document.querySelector('.note-scroller')) {
           console.log('xx', document.querySelector('.note-scroller').scrollHeight)
-          document.querySelector('.note-scroller').scrollTop = document.querySelector('.note-scroller').scrollHeight
+          // document.querySelector('.note-scroller').scrollTop = document.querySelector('.note-scroller').scrollHeight
+          const noteScroller = document.querySelector('.note-scroller');
+
+          noteScroller.scrollTo({
+            top: noteScroller.scrollHeight + 1,
+            behavior: 'smooth'
+          });
         }
         setZCommentsQueryCount(zCommentsQueryCount + 1);
       }, 2500);
@@ -281,7 +288,7 @@ function AiTip() {
         filterCommentList[index].hasReply = true;
         i++;
         // 异步 防封
-        await sleepTime(5000 + Math.random() * 2000);
+        await sleepTime(3000 + Math.random() * 2000);
       }
     }
     instance.destroy();

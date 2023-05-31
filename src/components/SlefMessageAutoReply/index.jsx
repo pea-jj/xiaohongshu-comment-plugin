@@ -71,7 +71,7 @@ function SlefMessageAutoReply() {
           refreshCheckFlag();
         }
         if (emptyCheckRef.current) {
-          autoSendMsg(chatbox_list.slice(0, 6));
+          autoSendMsg(chatbox_list.slice(0, 5));
           emptyCheckRef.current = false;
           refreshCheckFlag();
         }
@@ -103,7 +103,7 @@ function SlefMessageAutoReply() {
     setTimeout(() => {
       emptyCheckRef.current = true;
       inCheckRef.current = false;
-    }, 3 * 60 * 1000);
+    }, 2 * 60 * 1000);
   }
 
   const sendText = (text) => {
@@ -140,7 +140,7 @@ function SlefMessageAutoReply() {
         .then(() => {
           const contentLeftItem = document.querySelector(`.contact-list-wrapper>.contact-item:nth-child(${kIndex + 1})`);
           contentLeftItem.click();
-          return sleepTime(3000);
+          return sleepTime(1000);
         }).then(() => {
           const { chatUserId, chatBoxMsgList } = activeChatBoxRef.current;
           console.log(chatUserId, user_id, chatBoxMsgList);
@@ -154,7 +154,7 @@ function SlefMessageAutoReply() {
           let hasReply = false;
           for (let index = 0; index < chatBoxMsgList.length; index++) {
             const { message_type, receiver_id, content } = chatBoxMsgList[index];
-            if (message_type === 'BLANK' || content.includes('我们已相互关注')) {
+            if (message_type === 'BLANK' || content.includes('我们已相互关注，开始聊天吧') || content.includes('进入私信')) {
               continue;
             }
             if (receiver_id === chatUserId) {

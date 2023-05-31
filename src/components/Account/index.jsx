@@ -43,7 +43,6 @@ function Account() {
     for (let index = 0; index < list.length; index++) {
       const element = list[index];
       const href = element.querySelector('a')?.getAttribute('href');
-      console.log('mmm', element.querySelector('a'), element.querySelector('a')?.getAttribute('href'))
       var id = href?.match(/explore\/(.+)/)?.[1];
       if (!id) continue;
       const text = element.querySelector('.footer span').innerText;
@@ -52,7 +51,6 @@ function Account() {
         display_title: text,
       })
     }
-    console.log('aaa', domNotesResult);
     domNotesResult.length && setNoteList(domNotesResult);
   }, [noteList.length]);
 

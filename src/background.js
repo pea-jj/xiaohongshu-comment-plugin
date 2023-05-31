@@ -35,6 +35,8 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
             window.chrome.tabs.executeScript(tab.id, { code: `
               setTimeout(() => {
                 document.querySelector('.user-info .follow') && document.querySelector('.user-info .follow').click();
+                document.querySelector('.user-info .follow .follow') && document.querySelector('.user-info .follow .follow').click();
+                document.querySelector('.note-item .like-wrapper') && document.querySelector('.note-item .like-wrapper').click();
               }, 2000 + Math.random() * 3000)
               ` });
             // document.querySelector('.note-item .like-wrapper') && document.querySelector('.note-item .like-wrapper').click();
@@ -54,7 +56,7 @@ window.chrome.runtime.onMessage.addListener(function(request, sender, sendRespon
               } else {
                 r(i++);
               }
-            }, 6000 + Math.random() * 3000);
+            }, 5000 + Math.random() * 3000);
           })
           await processFollow();
         }
