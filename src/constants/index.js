@@ -7,4 +7,6 @@ export const initialValues = {
   selfMessageSwitch: true,
   selfMessageContent: '1. 你好呀~ 2. hello 哈哈哈',
   selfMessageImage: '',
+  checkTimeLimit: 100,
+  checkCountLimit: 5,
 }

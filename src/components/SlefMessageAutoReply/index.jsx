@@ -14,7 +14,7 @@ function SlefMessageAutoReply() {
   const emptyCheckRef = useRef(false); // 空闲检测 补偿未回复的消息
   const inCheckRef = useRef(false); // 是否在检测中
   const { access } = useVerify(nickName); // 权限
-  const { selfMessageSwitch, selfMessageContent, selfMessageImage } = globalConfig;
+  const { selfMessageSwitch, selfMessageContent, selfMessageImage, checkTimeLimit = 120, checkCountLimit = 5 } = globalConfig;
 
   const [modal, contextModalHolder] = Modal.useModal();
   const currentAccess = access?.includes('SELF_MESSAGE');
@@ -71,7 +71,7 @@ function SlefMessageAutoReply() {
           refreshCheckFlag();
         }
         if (emptyCheckRef.current) {
-          autoSendMsg(chatbox_list.slice(0, 5));
+          autoSendMsg(chatbox_list.slice(0, checkCountLimit));
           emptyCheckRef.current = false;
           refreshCheckFlag();
         }
@@ -103,7 +103,7 @@ function SlefMessageAutoReply() {
     setTimeout(() => {
       emptyCheckRef.current = true;
       inCheckRef.current = false;
-    }, 2 * 60 * 1000);
+    }, checkTimeLimit * 1000);
   }
 
   const sendText = (text) => {
@@ -143,7 +143,7 @@ function SlefMessageAutoReply() {
           return sleepTime(1000);
         }).then(() => {
           const { chatUserId, chatBoxMsgList } = activeChatBoxRef.current;
-          console.log(chatUserId, user_id, chatBoxMsgList);
+          // console.log(chatUserId, user_id, chatBoxMsgList);
           if (chatUserId !== user_id) {
             throw new Error();
           };
@@ -181,6 +181,8 @@ function SlefMessageAutoReply() {
     }, Promise.resolve())
       .finally(() => {
         console.log('结束')
+        const scrollEl = window.document.querySelector('.contact-list-wrapper');
+        scrollEl.scrollTop = 0;
         stopFigRef.current = false;
         instance.destroy();
       });

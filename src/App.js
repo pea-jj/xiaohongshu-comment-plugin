@@ -117,6 +117,12 @@ function App() {
         <Form.Item label="文字话术" name="selfMessageContent" tooltip="多条话术随机展示，格式严格按照1. 2. 3. 索引来哦，注意有空格" extra="注意1. 后面有个空格">
           <Input.TextArea placeholder="1. 你好呀~加xxxxxx可以了解更多哦！ 2. 加群" allowClear autoSize />
         </Form.Item>
+        <Form.Item label="兜底检测消息间隔" name="checkTimeLimit" extra="建议60-180秒">
+          <InputNumber allowClear addonAfter="秒" min={30} max={300} />
+        </Form.Item>
+        <Form.Item label="兜底检测消息数量" name="checkCountLimit" extra="建议3-20">
+          <InputNumber allowClear addonAfter="条" min={3} max={20} />
+        </Form.Item>
         {/* <Button onClick={testSelfMessageContent} style={{ marginLeft: 140 }}>点我测试随机文字话术</Button> */}
         <Form.Item label="图片回复" name="selfMessageImage" tooltip="请把图片发给博主以获取填写方式" extra="请把图片发给博主以获取填写方式">
           <Input.TextArea placeholder="请把图片发给博主以获取填写方式,该功能额外付费" allowClear autoSize />
